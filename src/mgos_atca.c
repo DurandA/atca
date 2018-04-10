@@ -34,6 +34,10 @@
 #include "hal/atca_hal.h"
 #include "host/atca_host.h"
 
+#ifndef ATCA_HAVE_608
+#define ATCA_HAVE_608 0
+#endif
+
 /*
  * This is a HAL implementation for the Atmel/Microchip CryptoAuthLib.
  * It translates ATCA interface calls into MGOS API calls.
@@ -218,10 +222,13 @@ bool mgos_atca_init(void) {
    */
   if (addr < 0x7f) addr <<= 1;
   atca_cfg = &cfg_ateccx08a_i2c_default;
-  if (atca_cfg->atcai2c.slave_address != addr) {
+  if (atca_cfg->atcai2c.slave_address != addr || ATCA_HAVE_608) {
     ATCAIfaceCfg *cfg = (ATCAIfaceCfg *) calloc(1, sizeof(*cfg));
     memcpy(cfg, &cfg_ateccx08a_i2c_default, sizeof(*cfg));
     cfg->atcai2c.slave_address = addr;
+    #if ATCA_HAVE_608
+    cfg->devtype = ATECC608A;
+    #endif /* ATCA_HAVE_608 */
     atca_cfg = cfg;
   }
 
